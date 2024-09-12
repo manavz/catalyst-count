@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %} HOME | Page{% endblock %}</title>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+</head>
+<body>
+<div class="container fs-4">
+  <ul class="nav bg-info">
+    <li class="nav-item">
+      <a class="nav-link link-light text-bold" href="/dashboard">Upload Data</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link link-light" href="/query">Query Builder</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link link-light" href="/users">users</a>
+    </li>
+    {% if user.is_authenticated %}
+    <li class="nav-item">
+      <a class="nav-link " href="#">Welcome - {{ user.username }} </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link link-light" href="/logout">Logout</a>
+    </li>
+    {% else %}
+    <li class="nav-item">
+      <a class="nav-link" href="/login">Login</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/register">Register</a>
+    </li>
+    {% endif %}
+  </ul>
+
+  {% block content %}
+  {% endblock %}
+</div>
+</body>
+</html>

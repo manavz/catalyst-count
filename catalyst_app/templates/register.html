@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Register | Page{% endblock %}</title>
+
+    {% load bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #17a2b8;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #register-box {
+            max-width: 500px;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-message ul {
+            padding-left: 0;
+        }
+
+        .success-message li {
+            list-style: none;
+        }
+
+        .messages h4 {
+            margin: 0;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .text-custom {
+            color: #007bff;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="register" class="container-fluid d-flex justify-content-center align-items-center">
+        <div id="register-box" class="col-md-6 col-lg-5 col-sm-8">
+            <h3 class="text-center text-info mb-4">Register</h3>
+
+            <div class="success-message">
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li class="{{ message.tags }}">
+                                <h4 class="alert-{{ message.tags }} text-center py-2">
+                                    {{ message }}
+                                </h4>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <form id="register-form" method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="form-group mb-3">
+                        <label class="text-info">{{ field.label_tag }}</label>
+                        {{ field }}
+                        <div class="text-danger">{{ field.errors }}</div>
+                    </div>
+                {% endfor %}
+
+                <div class="form-group form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                    <label for="remember-me" class="form-check-label text-info">Remember me</label>
+                </div>
+
+                <div class="form-group d-flex justify-content-center">
+                    <input type="submit" class="btn btn-custom btn-md w-100" value="Submit">
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="/" class="text-custom">Login here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
