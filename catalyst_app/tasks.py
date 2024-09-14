@@ -2,6 +2,9 @@ import csv
 from celery import shared_task, current_task
 from io import StringIO
 from .models import CsvModel
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
 
 
 @shared_task(bind=True)
@@ -71,8 +74,19 @@ def process_csv(self, chunk, total_rows):
 
 
         # Periodic progress update
-        if processed_rows % 100 == 0:
-            self.update_state(state='PROGRESS', meta={'current': processed_rows, 'total': total_rows})
+        if processed_rows % 1000 == 0:
+            # self.update_state(state='PROGRESS', meta={'current': processed_rows, 'total': total_rows})
+            if processed_rows % 1000 == 0:  # Update after every 1000 rows
+                progress_percentage = (processed_rows / total_rows) * 100
+
+                # Send progress to WebSocket
+                async_to_sync(channel_layer.group_send)(
+                    'progress_group',  # Group name
+                    {
+                        'type': 'send_progress_update',
+                        'progress': progress_percentage
+                    }
+                )
 
         print({'processed_rows': processed_rows, 'total_rows': total_rows})
     

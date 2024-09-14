@@ -40,9 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'catalyst_app',
     'bootstrap5',
     'django_celery_results'
+    
 ]
 
 MIDDLEWARE = [
@@ -80,6 +82,20 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'catalyst_proj.wsgi.application'
+
+
+# Define the ASGI application
+ASGI_APPLICATION = 'catalyst_proj.asgi.application'
+
+# WebSockets will use Redis as the channel layer
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],  # Redis server
+        },
+    },
+}
 
 
 # Database

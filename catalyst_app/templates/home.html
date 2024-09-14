@@ -84,6 +84,33 @@
     // Start checking the task progress
     checkTaskProgress(taskId);
   </script>
+
+
+
+
+
+  <script>
+    const taskID = "{{ task_id }}";  // Pass the task_id from Django view
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/progress/');
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        const progress = data.progress;
+
+        // Update progress bar
+        document.getElementById("progress-bar").style.width = progress + '%';
+        document.getElementById("progress-bar").innerText = Math.round(progress) + '%';
+    };
+
+    socket.onclose = function(event) {
+        console.error('WebSocket closed unexpectedly');
+    };
+</script>
+
+{% comment %} <div class="progress">
+    <div id="progress-bar" class="progress-bar" style="width: 0%;">0%</div>
+</div> {% endcomment %}
+
 {% endif %}
 
 {% endblock %}
