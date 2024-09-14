@@ -18,20 +18,32 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.contrib import messages
 
+
 def task_status(request, task_id):
-    task_result = AsyncResult(task_id)
-    if task_result.state == 'PROGRESS':
+    task = AsyncResult(task_id)
+
+    if task.state == 'PENDING':
+        # Task has not started yet
         response = {
-            'state': task_result.state,
-            'current': task_result.info.get('current', 0),
-            'total': task_result.info.get('total', 1),
+            'state': task.state,
+            'progress': 0
+        }
+    elif task.state != 'FAILURE':
+        # Task is either PROGRESS, SUCCESS, or some other state
+        progress = task.info.get('current', 0)
+        total = task.info.get('total', 1)
+        response = {
+            'state': task.state,
+            'progress': (progress / total) * 100,  # Percentage completed
         }
     else:
+        # Task failed
         response = {
-            'state': task_result.state,
-            'current': 0,
-            'total': 1,
+            'state': task.state,
+            'progress': 100,  # Assume failure ends the task
+            'error': str(task.info)  # This is the exception raised
         }
+    print("STATE : ", response['state'], "progress : ", response['progress'])
     return JsonResponse(response)
 
 
@@ -39,12 +51,6 @@ def task_status(request, task_id):
 def index(request):
     return render(request, 'login.html')
 
-
-def count_rows_in_csv(csv_file_path):
-    """Counts the total number of rows in the CSV file."""
-    with open(csv_file_path, 'r') as file:
-        reader = csv.reader(file)
-        return sum(1 for row in reader)
 
 def dashboard(request):
     if request.user.is_authenticated:
@@ -64,34 +70,38 @@ def dashboard(request):
                     return redirect('home')
                 try:
                     print("======= 2 =========")
-                    # Save the file to a temporary location
-                    # file_name = default_storage.save(f'tmp/{csv_file.name}', csv_file)
-                    # file_path = os.path.join(settings.MEDIA_ROOT, file_name)
 
                     chunk_size = 10000  # Number of rows per chunk
                     chunk = []
+                    total_rows = 0
                     for i, line in enumerate(csv_file):
-                        # Decode the byte stream into a string
+                        total_rows += 1
+
+                    print("== TOTAL ROWS =====>", total_rows)
+
+
+                    for i, line in enumerate(csv_file):
                         decoded_line = line.decode('utf-8')
                         chunk.append(decoded_line)
 
                         # When chunk size is reached, send the chunk to Celery
                         if (i + 1) % chunk_size == 0:
                             print("======= 3 =========")
-
-                            process_csv.delay(''.join(chunk))  # Join the chunk and send to Celery
+                            task = process_csv.delay(''.join(chunk), total_rows=total_rows)  # Join the chunk and send to Celery
+                            print("== BACKEND ========>", task.backend)
                             chunk = []  # Reset the chunk
 
-                        # Process any remaining rows that didn't complete a full chunk
+                    # Process any remaining rows that didn't complete a full chunk
                     if chunk:
-                        process_csv.delay(''.join(chunk))
+                        task_id = process_csv.delay(''.join(chunk), total_rows=total_rows)
+
+                    return render(request, 'home.html', {'task_id': task.id})
 
                 except Exception as e:
                     messages.error(request, f'Error processing the CSV file: {e}')
                     return redirect('dashboard')
 
     return redirect('index')
-
 
 
 def sign_up(request):

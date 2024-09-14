@@ -34,14 +34,56 @@
         </div>
     {% endfor %}
     </form>
-    <!-- Progress Bar Section -->
-        <div class="progress mt-4" style="height: 30px;">
-            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                <span id="progress-text">0% Complete</span>
-            </div>
+    {% if task_id %}
+      <div>
+        <div> Task ID:{{ task_id }} </div>
+      </div>
+      {% endif %}
+      <div>
+        <div id="progress-container" class="my-4" style="width: 100%; background-color: #f3f3f3;">
+          <div id="progress-bar" style="width: 0%; height: 30px; background-color: #4caf50;"></div>
         </div>
-        <p id="progress-details" class="mt-2"></p> <!-- For showing current row/total row count -->
+        <p id="task-status" class="my-2">Task Status: Starting...</p>
+      </div>
 </div>
 
+
+{% if task_id %}
+  <script>
+    const taskId = "{{ task_id }}";
+    // Function to check task progress
+    function checkTaskProgress(taskId) {
+      console.log("IN FUNCTION ---" + taskId)
+
+      fetch(`/task-status/${taskId}/`)
+        .then(response => response.json())
+        .then(data => {
+          // Update the progress bar and status
+
+          const progress = data.progress;
+          const state = data.state;
+
+          console.log("state :" + state)
+          console.log("progress :" + progress)
+
+
+
+          document.getElementById('progress-bar').style.width = progress + '%';
+          document.getElementById('task-status').innerText = 'Task Status: ' + state + ' (' + Math.round(progress) + '%)';
+
+          // If the task is not completed, keep checking
+          if (state !== 'SUCCESS' && state !== 'FAILURE') {
+            setTimeout(function() {
+              checkTaskProgress(taskId);
+            }, 5000);  // Check every 2 seconds
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Start checking the task progress
+    checkTaskProgress(taskId);
+  </script>
+{% endif %}
 
 {% endblock %}

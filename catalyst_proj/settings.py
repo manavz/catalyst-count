@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'catalyst_app',
     'bootstrap5',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,4 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 UNT_LOGOUT_REDIRECT_URL ="/accounts/login"
 
+CELERY_RESULT_BACKEND = 'django-db'
